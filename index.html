@@ -1,0 +1,1189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <title></title>
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery-ui.min.js"></script>
+  <style type="text/css">
+  body {
+    margin:0px;
+    padding: 0px;
+    font-size:12px;
+    background:white;
+  }
+  
+  /*
+  width:42px;
+  height:35px;
+  */
+
+  /* 3 * 4*/
+  .item1{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:134px;
+  height:160px;
+  }
+  /* 2 * 2*/
+  .item2{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:89px;
+  height:80px;
+  }
+  /* 3 * 3*/
+  .item3{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:134px;
+  height:120px;
+  }
+  /* 4 * 5*/
+  .item4{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:180px;
+  height:200px;
+  }
+  /* 2 * 5*/
+  .item5{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:89px;
+  height:200px;
+  }
+  /* 2 * 5*/
+  .item6{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:89px;
+  height:200px;
+  }
+  /* 3 * 5*/
+  .item7{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:134px;
+  height:200px;
+  }
+  /* 1 * 1*/
+  .item8{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:42px;
+  height:35px;
+  }
+  /* 2 * 3*/
+  .item9{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:89px;
+  height:120px;
+  }
+  /* 3 * 3*/
+  .item10{
+  border:1px solid #499B33;
+  background:#fafafa;
+  width:134px;
+  height:120px;
+  }
+
+  #config {
+    background:#fff;
+    color:#000;
+  }
+  
+  #berth {
+    float:left;
+    width:27%;
+    height:520px;
+    overflow:auto; 
+  }
+</style>
+<script type="text/javascript">
+  var Data = {
+        'Grid' : true,
+        'Ruler' : true,
+        'Time' : GetTimeList(),
+        'Length':GetLenList()
+  }
+  var ctx;
+  function GetTimeList(){
+    var re = [];
+    for(var i = 0; i < 20; i ++){
+          re.push(19-i);
+    }
+    return re.reverse();
+  }
+  function GetLenList(){
+    var re = [];
+    for(var i = 1; i <=12; i ++){
+          re.push(12-i);
+    }
+    return re.reverse();
+  }
+  
+jQuery.noConflict(); 
+    jQuery(document).ready(function($){
+        
+        canvas = document.getElementById("canvas");     
+        if(canvas.getContext){       
+            ctx = canvas.getContext("2d");       
+            ctx.strokeStyle = "red";     
+            ctx.beginPath();   
+            ctx.moveTo(0,0);       
+            ctx.lineTo(0,105);     
+            ctx.stroke();          
+        } 
+        Show(document.getElementById("canvas"), Data);
+        var arrive_time=[0,2,3,5,6,7,9,10,13,14];
+        var unload_time=[3,2,3,4,2,3,5,4,5,6];
+        var boat_length=[4,2,3,5,5,5,5,1,3,3];
+    	function createBerth()
+    	{
+    		var alphabet=['A','B','C','D','E','F','G','H','I','J'];
+    		for(var i=0;i<10;i++)
+    		{
+    		  	var tr="<tr><td>"+(i+1)+"</td>";
+    		    tr+="<td>"+arrive_time[i]+"</td>";
+    		    tr+="<td>"+unload_time[i]+"</td>";
+    		    tr+="<td>"+boat_length[i]+"</td>";
+    		    tr+= "<td><div class='item"+(i+1)+"'style='border:1px solid #499B33;background:#fafafa;"+"'>"+alphabet[i]+"</div></td>"; //绘制船舶的样式
+    		    tr+="</tr>";
+    		    $("#table").append(tr);
+    		}
+    	}
+    	createBerth();
+        var array_x=[];
+        var array_y=[];
+    	var array_width=[];
+    	var array_height=[];
+        var axis=[];
+
+        $("#check").click(function(){
+          var validate = false;
+          if(axis.length==10) 
+          {
+            var total_wait_time = 0;           
+            for(i=0;i<10;i++)
+            {
+              total_wait_time += axis[i]-arrive_time[i];
+            }
+            validate = true;
+          }
+          if(validate)
+          {
+              $("#message").text("");
+              $("#message").text("根据你的方案：所有船舶的总的等待时间为"+total_wait_time);
+          }else
+          {
+              $("#message").text("你的方案不合法或违规");
+          }
+        });
+
+    	function TestCross(index,x,y,width,height)
+    	{
+    		var bool = 0;
+    		index--;
+    		if(array_x.length == 0) return bool;
+    		for(i=0;i<array_x.length;i++)
+    		{
+    			if(i!=index)
+    			{
+    		    	if(x>array_x[i] && x<(array_x[i]+array_width[i]) && y>array_y[i] && (y<array_y[i]+array_height[i]))
+    		        {
+    		           bool =1;
+    		        }else if((x+width-10)>array_x[i] && (x+width+10)<(array_x[i]+array_width[i]) && (y-10)>array_y[i] && ((y-10)<array_y[i]+array_height[i]))
+    		        {
+    		        	bool =1;
+    		        }else if((x+width-10)>array_x[i] && (x+width-10)<(array_x[i]+array_width[i]) && (y+height-10)>array_y[i] && ((y+height-10)<array_y[i]+array_height[i]))
+    		        {
+    		            bool =1;
+    		        }else if((x-10)>array_x[i] && (x-10)<(array_x[i]+array_width[i]) && (y+height-10)>array_y[i] && ((y+height-10)<array_y[i]+array_height[i]))
+    		        {
+    		            bool =1;
+    		        }
+    		        //处理包含关系
+                	if(x<array_x[i] && (x+width)>(array_x[i]+array_width[i]) && y<array_y[i] &&(y+height)>(array_y[i]+array_height[i]))
+                	{
+                    	bool = 1;
+                	}
+                	//处理大方块的边界问题
+                	if((x+width)>array_x[i] && (x+width)<(array_x[i]+array_width[i]) && y<array_y[i] && (y+height)>(array_y[i]+array_height[i]))
+                	{
+                    	bool = 1;
+                	}
+                	if(x>array_x[i] && x<(array_x[i]+array_width[i]) && y<array_y[i] && (y+height)>(array_y[i]+array_height[i]))
+                	{
+                    	bool = 1;
+                	}
+                	if(x<array_x[i] &&(x+width)>(array_x[i]+array_width[i]) && y>array_y[i] && y<(array_y[i]+array_height[i]))
+                	{
+                    	bool = 1;
+                	}
+                	if(x<array_x[i] &&(x+width)>(array_x[i]+array_width[i]) && y<(array_y[i]+array_height[i]))
+                	{
+                    	bool = 1;
+                	}
+            	}else
+    		      	continue;
+    		}
+    		return bool; 
+    	}
+
+    	var draw = false;
+    	var draw_x,draw_y;
+    	var flag = false,flag1 = false,flag2 = false,flag3 = false,flag4 = false,flag5 = false,flag6 = false,flag7 = false;
+    	var flag8 = false,flag9 = false;
+
+        $('.item1').draggable({
+          cursor:"move",
+          revert:true,
+          revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item1").css("width"));
+              height = parseInt($(".item1").css("height"));
+              time = $(".item1").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              {
+                  
+                  if(!draw && !flag)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item1").css("width"));
+              height = parseInt($(".item1").css("height"));
+              time = $(".item1").parent().prev().prev().prev().html();
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(11-j)>=n_height&&x>x1[time])              
+              {      
+                  if(TestCross(1,x,y,width,height)==1) alert("不能放入此区域");
+                  else
+                  {
+				  	$(".item1").css("position","absolute");
+                    $(".item1").css("top",y1[j]+"px");
+                    $(".item1").css("left",x1[i]+"px");
+              	    array_x[0] = x1[i];
+              	    array_y[0] = y1[j];
+              	    array_width[0] = width;
+              	    array_height[0] = height;
+                    axis[0] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag = true;
+				  }
+              }
+          }
+		});
+
+        $('.item2').draggable({
+          cursor:"move",
+          revert:true,
+          revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item2").css("width"));
+              height = parseInt($(".item2").css("height"));
+              time = $(".item2").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                  
+                  if(!draw && !flag1)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);Run();
+                    Run();
+                    draw = false;
+                  }
+                  
+              }
+          },
+          stop:function(e,source)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item2").css("width"));
+              time = $(".item2").parent().prev().prev().prev().html();
+              height = parseInt($(".item2").css("height"));
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1] && (11-j)>=n_height && x>x1[time])              
+              {      
+
+                  if(TestCross(2,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item2").css("position","absolute");
+                  	$(".item2").css("top",y1[j]+"px");
+                  	$(".item2").css("left",x1[i]+"px");
+                  	array_x[1] = x1[i];
+              	  	array_y[1] = y1[j];
+              	  	array_width[1] = width;
+              	  	array_height[1] = height;
+                    axis[1] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag1 = true;
+                  }
+              } 
+          }
+        });
+
+        $('.item3').draggable({
+          cursor:"move",
+          revert:true,
+          revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;	
+              y = e.clientY;
+              width = parseInt($(".item3").css("width"));
+              height = parseInt($(".item3").css("height"));
+              time = $(".item3").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                
+                  if(!draw && !flag2)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item3").css("width"));
+              height = parseInt($(".item3").css("height"));
+              time = $(".item3").parent().prev().prev().prev().html();
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1] && (11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(3,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item3").css("position","absolute");
+                  	$(".item3").css("top",y1[j]+"px");
+                  	$(".item3").css("left",x1[i]+"px");
+                  	array_x[2] = x1[i];
+              	  	array_y[2] = y1[j];
+              	  	array_width[2] = width;
+              	  	array_height[2] = height;
+                    axis[2] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag2 = true;
+                  }	
+              } 
+          }
+        });
+
+        $('.item4').draggable({
+          cursor:"move",revert:true,revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item4").css("width"));
+              height = parseInt($(".item4").css("height"));
+              time = $(".item4").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                 
+                  if(!draw && !flag3)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                 
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item4").css("width"));
+              height = parseInt($(".item4").css("height"));
+              time = $(".item4").parent().prev().prev().prev().html();
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1] && (11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(4,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item4").css("position","absolute");
+                  	$(".item4").css("top",y1[j]+"px");
+                  	$(".item4").css("left",x1[i]+"px");
+                  	array_x[3] = x1[i];
+              	  	array_y[3] = y1[j];
+              	  	array_width[3] = width;
+              	  	array_height[3] = height;
+                    axis[3] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag3 = true;        
+                  }
+              } 
+          }
+        });
+
+        $('.item5').draggable({
+          cursor:"move",revert:true,revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item5").css("width"));
+              height = parseInt($(".item5").css("height"));
+              time = $(".item5").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                
+                  if(!draw && !flag4)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item5").css("width"));
+              height = parseInt($(".item5").css("height"));
+              time = $(".item5").parent().prev().prev().prev().html();
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1] && (11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(5,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item5").css("position","absolute");
+                  	$(".item5").css("top",y1[j]+"px");
+                  	$(".item5").css("left",x1[i]+"px");
+                  	array_x[4] = x1[i];
+              	  	array_y[4] = y1[j];
+              	  	array_width[4] = width;
+              	  	array_height[4] = height;
+                    axis[4] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag4 = true;
+                  }
+              } 
+          }
+        });
+
+        $('.item6').draggable({
+          cursor:"move",revert:true,revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item6").css("width"));
+              height = parseInt($(".item6").css("height"));
+              time = $(".item6").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                
+                  if(!draw && !flag5)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                 
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item6").css("width"));
+              height = parseInt($(".item6").css("height"));
+              time = $(".item6").parent().prev().prev().prev().html();
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(6,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item6").css("position","absolute");
+                  	$(".item6").css("top",y1[j]+"px");
+                  	$(".item6").css("left",x1[i]+"px");
+                  	array_x[5] = x1[i];
+              	  	array_y[5] = y1[j];
+              	  	array_width[5] = width;
+              	  	array_height[5] = height;  
+                    axis[5] = i;    
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag5 = true;            	
+                  }
+              } 
+          }
+        });
+
+        $('.item7').draggable({
+          cursor:"move",revert:true,revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item7").css("width"));
+              height = parseInt($(".item7").css("height"));
+              time = $(".item7").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                
+                  if(!draw && !flag6)
+                  {
+                    ctx.fillStyle="#cccccc";
+                   ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item7").css("width"));
+              height = parseInt($(".item7").css("height"));
+              time = $(".item7").parent().prev().prev().prev().html();
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1] &&(11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(7,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item7").css("position","absolute");
+                  	$(".item7").css("top",y1[j]+"px");
+                  	$(".item7").css("left",x1[i]+"px");
+                  	array_x[6] = x1[i];
+              	  	array_y[6] = y1[j];
+              	  	array_width[6] = width;
+              	  	array_height[6] = height;
+                    axis[6] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag6 = true;                    
+                  }
+              } 
+          }
+        });
+
+        $('.item8').draggable({
+          cursor:"move",revert:true,revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item8").css("width"));
+              height = parseInt($(".item8").css("height"));
+              time = $(".item8").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                
+                  if(!draw && !flag7)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                  
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item8").css("width"));
+              height = parseInt($(".item8").css("height"));
+              time = $(".item8").parent().prev().prev().prev().html();              
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(8,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item8").css("position","absolute");
+                  	$(".item8").css("top",y1[j]+"px");
+                  	$(".item8").css("left",x1[i]+"px");
+                  	array_x[7] = x1[i];
+              	  	array_y[7] = y1[j];
+              	  	array_width[7] = width;
+              	  	array_height[7] = height;
+                    axis[7] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag7 = true;                    
+                  }
+              } 
+          }
+        });
+
+        $('.item9').draggable({
+          cursor:"move",revert:true,revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item9").css("width"));
+              height = parseInt($(".item9").css("height"));
+              time = $(".item9").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                
+                  if(!draw && !flag8)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item9").css("width"));
+              height = parseInt($(".item9").css("height"));
+              time = $(".item9").parent().prev().prev().prev().html();              
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1] && (11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(9,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item9").css("position","absolute");
+                  	$(".item9").css("top",y1[j]+"px");
+                  	$(".item9").css("left",x1[i]+"px");
+                  	array_x[8] = x1[i];
+              	  	array_y[8] = y1[j];
+              	  	array_width[8] = width;
+              	  	array_height[8] = height;
+                    axis[8] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag8 = true;                  }
+              } 
+          }
+        });
+
+        $('.item10').draggable({
+          cursor:"move",revert:true,revertDuration: 5,
+          cursorAt: {top:0,left:0},
+          drag:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item10").css("width"));
+              height = parseInt($(".item10").css("height"));
+              time = $(".item10").parent().prev().prev().prev().html();
+              n_width = width/42;
+              n_height = height/35;
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1]&&(12-j)>=n_height&&x>=x1[time])              
+              { 
+                
+                  if(!draw && !flag9)
+                  {
+                    ctx.fillStyle="#cccccc";
+                    ctx.fillRect(x1[i],y1[j],width,height);
+                    draw_x = i;
+                    draw_y = j;
+                    draw = true;
+                  }else
+                  {  
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                    draw = false;
+                  }
+                  
+              }
+          },
+          stop:function(e)
+          {
+              x = e.clientX;
+              y = e.clientY;
+              width = parseInt($(".item10").css("width"));
+              height = parseInt($(".item10").css("height"));
+              time = $(".item10").parent().prev().prev().prev().html();
+              n_width = Math.floor(width/42);
+              n_height = Math.floor(height/35);
+              ctx = canvas.getContext("2d"); 
+              x1=[52,97,145,191,236,281,327,373,419,465,511,557,603,649,695,742,789,835,880,925];
+              y1=[41,82,125,164,205,247,286,329,367,410,451,493];
+              var i=-1,j=-1;
+              for(k=0;k<20;k++) 
+              {
+                if(x>x1[k]) i++;
+              }
+              for(k=0;k<12;k++) 
+              {
+                if(y>y1[k]) j++;
+              }
+              if(x>=x1[i]&&x<=x1[i+1]&&y>=y1[j]&&y<=y1[j+1] && (11-j)>=n_height && x>x1[time])              
+              {      
+                  if(TestCross(10,x,y,width,height)==1) alert("不能放入此区域");
+                  else 
+                  {
+                  	$(".item10").css("position","absolute");
+                  	$(".item10").css("top",y1[j]+"px");
+                  	$(".item10").css("left",x1[i]+"px");
+                  	array_x[9] = x1[i];
+              	  	array_y[9] = y1[j];
+              	  	array_width[9] = width;
+              	  	array_height[9] = height;
+                    axis[9] = i;
+                    ctx.clearRect(x1[draw_x],y1[draw_y],width,height);
+                    Run();
+                	flag9 = true;                  }
+              } 
+          }
+        });
+     });
+
+    function Run(o, i){
+        if(document.all) return false;//判断是否是ie
+        Show(document.getElementById("canvas"), Data);
+	}
+
+	/*
+	*colw--列宽，rowh--行高
+	*/
+	function Show(d, data, f, colw, rowh){
+        var colw = colw || (d.offsetWidth - 30) / data.Time.length;
+        var rowh=rowh||(d.offsetHeight - 30)/ data.Length.length
+        var c = d.getContext('2d');
+        c.fillStyle = '#fff';
+        c.lineWidth = 0.4;
+        c.fillRect(0, 0, d.offsetWidth, d.offsetHeight);
+        c.strokeStyle = "#ccc";
+        c.fillStyle = '#0ff';
+        c.font = '10px verdana';
+        c.textBaseline = 'top';
+        var j=0;
+        for(var i = 40; i < d.offsetHeight; i += rowh){
+                c.beginPath();
+                //y轴的刻度，到时候可以依照需求自己画
+                if(data.Ruler){
+                    var t=(11-j);//左侧刻度百分比
+                    c.fillText(t,(19 - new String(t).length) * 1.0, i -8);
+                }
+                //画平行于 x轴的线
+                if(data.Grid){
+                    c.lineTo(40, i);
+                    c.lineTo(d.offsetWidth, i);
+                }
+                c.stroke();
+                c.closePath();
+                j++;
+        }
+
+        if(data.Grid){
+            //画平行于 y轴的线
+                for(var i = 50; i < d.offsetWidth; i += colw){
+                        c.beginPath();
+                        c.lineTo(i, 0);
+                        c.lineTo(i, d.offsetHeight-20);
+                        c.stroke();
+                        c.closePath();
+                }
+        }
+
+        if(data.Ruler){
+                c.beginPath();
+                //x轴的刻度
+                for(var i = 0; i < data.Time.length; i ++){
+                    c.fillText("     "+data.Time[i], i * colw + 25, d.offsetHeight - 13)
+                }
+                c.stroke();
+                c.closePath();
+        }
+	}
+
+/*
+ *随机生成n1-n2之间的数值(包含n1-n2)
+*/  
+function produce_random(n1,n2)
+{
+    return Math.round(Math.random() * (Math.max(n1,n2)-Math.min(n1,n2) + 1),1);
+}
+</script>
+</head>
+<body>
+  <canvas id="canvas" width="950" height="520" style="float:left;">Your browser does not support the canvas element.</canvas>
+  <div id="berth">
+  <table id="table" border="1" style="height:500px;overflow:auto;">
+    <tr>
+      <td>序号</td>
+      <td>到达时间</td>
+      <td>装卸时间</td>
+      <td>船舶长度</td>
+      <td>船舶样图</td>
+    </tr>
+    </table>
+</div>
+<div id="config">
+  <div>
+    <input type="checkbox" onclick="Data.Grid = checked;Run();" checked="true" />显示网格
+    <input type="checkbox" onclick="Data.Ruler = checked;Run();" checked="true" />显示标尺
+    <input type="button" id="check" value="计算"><span id="message" style="font-size: 15px;color:red"></span>
+  </div>
+</div>
+</body>
+</html>
